@@ -2,7 +2,7 @@ import os
 import logging
 import sys
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
+from telegram.ext import Application, CommandHandler, ContextTypes
 from telegram.error import Conflict
 
 # --- Configuration ---
@@ -23,26 +23,29 @@ CHANNEL_LINK = "https://t.me/KooraPredict"
 
 # --- Welcome Message in Arabic ---
 WELCOME_TEXT = """
-🌟 **مرحباً بك في بوت التوقعات!** 🌟
+🌟 **مرحباً بك في بوت KooraPredict!** 🌟
 
-🎯 **تابع المباريات بشكل يومي بدراسة وتحليل عالي**
+⚽ **تابع توقعات مباريات اليوم**
 
-📊 **نقدم لك:**
-• توقعات دقيقة لمباريات اليوم
-• تحليل عميق للأداء الفني
-• إحصائيات وأرقام حصرية
+📊 **ما نقدمه لك:**
+• تحليلات احترافية
+• إحصائيات دقيقة
+• توقعات مدروسة للمباريات
 
-🔥 **انضم إلى قناتنا الآن ولا تفوت أي تحديث!**
+🔥 **زر صفحتنا الآن وابق على اطلاع بكل جديد!**
 
 اضغط على الزر أدناه للانضمام 👇
 """
 
 # --- Button Text ---
-BUTTON_TEXT = "📢 تابع المباريات بشكل يومي و بدراسة و تحليل عالي"
+BUTTON_TEXT = "📢 تابع توقعات مباريات اليوم - تحليلات احترافية"
+
+# --- Image File Name ---
+IMAGE_FILE = "image.png"
 
 # --- Command Handlers ---
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Send welcome message with images and channel button."""
+    """Send welcome message with image and channel button."""
     user = update.effective_user
     logger.info(f"User {user.first_name} ({user.id}) started the bot.")
 
@@ -53,29 +56,25 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     try:
-        # Send first image with caption
-        with open('image1.jpg', 'rb') as photo1:
+        # Send image with caption and button
+        with open(IMAGE_FILE, 'rb') as photo:
             await update.message.reply_photo(
-                photo=photo1,
+                photo=photo,
                 caption=WELCOME_TEXT,
                 parse_mode='Markdown',
                 reply_markup=reply_markup
             )
-        
-        # Send second image (without caption)
-        with open('image2.jpg', 'rb') as photo2:
-            await update.message.reply_photo(photo=photo2)
             
     except FileNotFoundError:
-        logger.error("Image files not found! Please make sure 'image1.jpg' and 'image2.jpg' are in the bot directory.")
-        # Fallback: send text only if images are missing
+        logger.error(f"Image file '{IMAGE_FILE}' not found! Make sure it's in the bot directory.")
+        # Fallback: send text only if image is missing
         await update.message.reply_text(
             WELCOME_TEXT,
             parse_mode='Markdown',
             reply_markup=reply_markup
         )
     except Exception as e:
-        logger.error(f"Error sending images: {e}")
+        logger.error(f"Error sending image: {e}")
         await update.message.reply_text(
             WELCOME_TEXT,
             parse_mode='Markdown',
@@ -85,9 +84,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Send help message."""
     help_text = """
-🤖 **بوت التوقعات الرياضية**
+🤖 **بوت KooraPredict**
 
-🎯 **الأوامر المتاحة:**
+⚽ **الأوامر المتاحة:**
 /start - عرض رسالة الترحيب
 /help - عرض هذه المساعدة
 
@@ -106,13 +105,13 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
 # --- Main Function ---
 def main():
     """Start the bot."""
-    logger.info("🚀 Starting Prediction Bot...")
+    logger.info("🚀 Starting KooraPredict Bot...")
     
-    # Check if image files exist
-    if not os.path.exists('image1.jpg'):
-        logger.warning("⚠️ 'image1.jpg' not found! The bot will work but without images.")
-    if not os.path.exists('image2.jpg'):
-        logger.warning("⚠️ 'image2.jpg' not found! The bot will work but without images.")
+    # Check if image file exists
+    if not os.path.exists(IMAGE_FILE):
+        logger.warning(f"⚠️ '{IMAGE_FILE}' not found! The bot will work but without image.")
+    else:
+        logger.info(f"✅ Image file '{IMAGE_FILE}' found.")
     
     # Create application
     application = Application.builder().token(BOT_TOKEN).build()
