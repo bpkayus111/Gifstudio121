@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 # --- Channel Link ---
 CHANNEL_LINK = "https://t.me/KooraPredict"
 
-# --- Image Files (Clean Names) ---
+# --- Image Files ---
 WELCOME_IMAGE = "welcome.png"
 
 PREDICTION_IMAGES = [
@@ -32,7 +32,6 @@ PREDICTION_IMAGES = [
     "prediction_4.jpg",
     "prediction_5.jpg",
     "prediction_6.jpg",
-    "prediction_7.jpg"
 ]
 
 # --- Welcome Message ---
@@ -53,7 +52,7 @@ WELCOME_TEXT = """
 
 BUTTON_TEXT = "📢 تابع توقعات مباريات اليوم - تحليلات احترافية"
 
-# --- Sequence Messages (Arabic) ---
+# --- Sequence Messages ---
 MESSAGE_1 = """👋 **مرحباً!** سعيد برؤيتك هنا.
 
 دعنا لا نضيع الوقت ونذهب مباشرة إلى النقطة!"""
@@ -74,9 +73,6 @@ MESSAGE_5 = """💪 **لا تقلق إذا كنت جديداً!**
 
 أنا أرشد الجميع خطوة بخطوة، لذلك لن تكون بمفردك. 🚀"""
 
-# --- User Session Storage ---
-user_sessions = {}
-
 # --- Command Handlers ---
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Send welcome message with image and channel button."""
@@ -84,18 +80,16 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = user.id
     logger.info(f"User {user.first_name} ({user_id}) started the bot.")
 
-    # Store user session
-    if user_id not in user_sessions:
-        user_sessions[user_id] = {'step': 0}
-
     # Create the inline keyboard button
     keyboard = [
         [InlineKeyboardButton(BUTTON_TEXT, url=CHANNEL_LINK)]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
+    # ============================================================
+    # STEP 1: Send Welcome Image with Message and Button
+    # ============================================================
     try:
-        # Send welcome image with caption and button
         if os.path.exists(WELCOME_IMAGE):
             with open(WELCOME_IMAGE, 'rb') as photo:
                 await update.message.reply_photo(
@@ -104,15 +98,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     parse_mode='Markdown',
                     reply_markup=reply_markup
                 )
-            logger.info(f"Welcome image sent to {user_id}")
+            logger.info(f"✅ Welcome image sent to {user_id}")
         else:
-            logger.error(f"Welcome image '{WELCOME_IMAGE}' not found!")
+            logger.error(f"❌ Welcome image '{WELCOME_IMAGE}' not found!")
             await update.message.reply_text(
                 WELCOME_TEXT,
                 parse_mode='Markdown',
                 reply_markup=reply_markup
             )
-            
     except Exception as e:
         logger.error(f"Error sending welcome image: {e}")
         await update.message.reply_text(
@@ -121,8 +114,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=reply_markup
         )
 
-    # Start the sequence after a short delay
-    await asyncio.sleep(2)
+    # Start the sequence after the welcome message
+    await asyncio.sleep(1)
     await send_sequence(update, context)
 
 async def send_sequence(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -131,29 +124,22 @@ async def send_sequence(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
 
     try:
-        # --- Message 1 ---
+        # ============================================================
+        # STEP 2: Send Message 1
+        # ============================================================
         await context.bot.send_message(
             chat_id=chat_id,
             text=MESSAGE_1,
             parse_mode='Markdown'
         )
-        logger.info(f"Sequence message 1 sent to {user_id}")
+        logger.info(f"✅ Message 1 sent to {user_id}")
 
-        # Wait 3 seconds
-        await asyncio.sleep(3)
+        # Wait 5 seconds
+        await asyncio.sleep(5)
 
-        # --- Message 2 ---
-        await context.bot.send_message(
-            chat_id=chat_id,
-            text=MESSAGE_2,
-            parse_mode='Markdown'
-        )
-        logger.info(f"Sequence message 2 sent to {user_id}")
-
-        # Wait 2 seconds before sending images
-        await asyncio.sleep(2)
-
-        # --- Send ALL images at once as an album ---
+        # ============================================================
+        # STEP 3: Send ALL 7 images at once (as an album)
+        # ============================================================
         media_group = []
         caption_added = False
 
@@ -174,9 +160,9 @@ async def send_sequence(update: Update, context: ContextTypes.DEFAULT_TYPE):
                         media_group.append(
                             InputMediaPhoto(media=open(image_file, 'rb'))
                         )
-                    logger.info(f"Added {image_file} to media group")
+                    logger.info(f"✅ Added {image_file} to media group")
                 else:
-                    logger.warning(f"Image file '{image_file}' not found")
+                    logger.warning(f"⚠️ Image file '{image_file}' not found")
             except Exception as e:
                 logger.error(f"Error loading image {image_file}: {e}")
 
@@ -208,36 +194,52 @@ async def send_sequence(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 text="⚠️ الصور غير متوفرة حالياً"
             )
 
-        # Wait 2 seconds after images
-        await asyncio.sleep(2)
+        # Wait 3 seconds after images
+        await asyncio.sleep(3)
 
-        # --- Message 3 ---
+        # ============================================================
+        # STEP 4: Send Message 3
+        # ============================================================
         await context.bot.send_message(
             chat_id=chat_id,
             text=MESSAGE_3,
             parse_mode='Markdown'
         )
-        logger.info(f"Sequence message 3 sent to {user_id}")
+        logger.info(f"✅ Message 3 sent to {user_id}")
 
-        # Schedule Message 4 (6 minutes later)
+        # ============================================================
+        # STEP 5: Schedule Message 4 (6 minutes later)
+        # ============================================================
         job_queue = context.job_queue
         if job_queue:
             job_queue.run_once(
                 send_delayed_message,
-                when=360,  # 6 minutes (360 seconds)
-                data={'chat_id': chat_id, 'user_id': user_id, 'message': MESSAGE_4}
+                when=360,  # 6 minutes
+                data={
+                    'chat_id': chat_id,
+                    'user_id': user_id,
+                    'message': MESSAGE_4,
+                    'type': 'message_4'
+                }
             )
-            logger.info(f"Scheduled message 4 for {user_id} in 6 minutes")
+            logger.info(f"⏰ Scheduled message 4 for {user_id} in 6 minutes")
 
-            # Schedule Message 5 (24 minutes after Message 4 = 30 minutes total)
+            # ============================================================
+            # STEP 6: Schedule Message 5 (24 minutes after Message 4)
+            # ============================================================
             job_queue.run_once(
                 send_delayed_message,
                 when=1800,  # 30 minutes total
-                data={'chat_id': chat_id, 'user_id': user_id, 'message': MESSAGE_5}
+                data={
+                    'chat_id': chat_id,
+                    'user_id': user_id,
+                    'message': MESSAGE_5,
+                    'type': 'message_5'
+                }
             )
-            logger.info(f"Scheduled message 5 for {user_id} in 30 minutes")
+            logger.info(f"⏰ Scheduled message 5 for {user_id} in 30 minutes")
         else:
-            logger.warning("Job queue not available - delayed messages won't work")
+            logger.warning("⚠️ Job queue not available - delayed messages won't work")
 
     except Exception as e:
         logger.error(f"Error in sequence: {e}")
@@ -248,6 +250,7 @@ async def send_delayed_message(context: ContextTypes.DEFAULT_TYPE):
     chat_id = data['chat_id']
     user_id = data['user_id']
     message = data['message']
+    msg_type = data.get('type', 'unknown')
 
     try:
         await context.bot.send_message(
@@ -255,9 +258,9 @@ async def send_delayed_message(context: ContextTypes.DEFAULT_TYPE):
             text=message,
             parse_mode='Markdown'
         )
-        logger.info(f"Delayed message sent to {user_id}")
+        logger.info(f"✅ {msg_type} sent to {user_id}")
     except Exception as e:
-        logger.error(f"Error sending delayed message: {e}")
+        logger.error(f"Error sending {msg_type} to {user_id}: {e}")
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Send help message."""
@@ -285,25 +288,18 @@ def main():
     """Start the bot."""
     logger.info("🚀 Starting KooraPredict Bot...")
 
-    # Check if welcome image exists
+    # Check files
     if os.path.exists(WELCOME_IMAGE):
         logger.info(f"✅ Welcome image found: {WELCOME_IMAGE}")
     else:
         logger.warning(f"⚠️ '{WELCOME_IMAGE}' not found!")
 
-    # Check all sequence images
-    missing_images = []
-    found_images = []
-    for img in PREDICTION_IMAGES:
-        if os.path.exists(img):
-            found_images.append(img)
-        else:
-            missing_images.append(img)
-    
-    if found_images:
-        logger.info(f"✅ Found {len(found_images)} prediction images")
-    if missing_images:
-        logger.warning(f"⚠️ Missing images: {missing_images}")
+    found = [img for img in PREDICTION_IMAGES if os.path.exists(img)]
+    missing = [img for img in PREDICTION_IMAGES if not os.path.exists(img)]
+    if found:
+        logger.info(f"✅ Found {len(found)} prediction images")
+    if missing:
+        logger.warning(f"⚠️ Missing images: {missing}")
 
     # Create application
     application = Application.builder().token(BOT_TOKEN).build()
