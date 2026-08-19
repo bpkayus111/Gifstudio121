@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 CHANNEL_LINK = "https://t.me/KooraPredict"
 
 # --- Image Files ---
-WELCOME_IMAGE = "welcome.png"
+WELCOME_IMAGE = "image.png"  # Your welcome image
 
 PREDICTION_IMAGES = [
     "prediction_1.jpg",
@@ -78,6 +78,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Send welcome message with image and channel button."""
     user = update.effective_user
     user_id = user.id
+    chat_id = update.effective_chat.id
     logger.info(f"User {user.first_name} ({user_id}) started the bot.")
 
     # Create the inline keyboard button
@@ -101,6 +102,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             logger.info(f"✅ Welcome image sent to {user_id}")
         else:
             logger.error(f"❌ Welcome image '{WELCOME_IMAGE}' not found!")
+            logger.info(f"Current directory: {os.getcwd()}")
+            logger.info(f"Files in directory: {os.listdir('.')}")
             await update.message.reply_text(
                 WELCOME_TEXT,
                 parse_mode='Markdown',
@@ -114,7 +117,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=reply_markup
         )
 
-    # Start the sequence after the welcome message
+    # Start the sequence after a short delay
     await asyncio.sleep(1)
     await send_sequence(update, context)
 
@@ -125,7 +128,7 @@ async def send_sequence(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     try:
         # ============================================================
-        # STEP 2: Send Message 1
+        # STEP 2: Send Message 1 (after welcome)
         # ============================================================
         await context.bot.send_message(
             chat_id=chat_id,
@@ -198,7 +201,20 @@ async def send_sequence(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await asyncio.sleep(3)
 
         # ============================================================
-        # STEP 4: Send Message 3
+        # STEP 4: Send Message 2 (after images)
+        # ============================================================
+        await context.bot.send_message(
+            chat_id=chat_id,
+            text=MESSAGE_2,
+            parse_mode='Markdown'
+        )
+        logger.info(f"✅ Message 2 sent to {user_id}")
+
+        # Wait 2 seconds
+        await asyncio.sleep(2)
+
+        # ============================================================
+        # STEP 5: Send Message 3 (after Message 2)
         # ============================================================
         await context.bot.send_message(
             chat_id=chat_id,
@@ -208,13 +224,13 @@ async def send_sequence(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.info(f"✅ Message 3 sent to {user_id}")
 
         # ============================================================
-        # STEP 5: Schedule Message 4 (6 minutes later)
+        # STEP 6: Schedule Message 4 (6 minutes later)
         # ============================================================
         job_queue = context.job_queue
         if job_queue:
             job_queue.run_once(
                 send_delayed_message,
-                when=360,  # 6 minutes
+                when=360,  # 6 minutes (360 seconds)
                 data={
                     'chat_id': chat_id,
                     'user_id': user_id,
@@ -225,7 +241,7 @@ async def send_sequence(update: Update, context: ContextTypes.DEFAULT_TYPE):
             logger.info(f"⏰ Scheduled message 4 for {user_id} in 6 minutes")
 
             # ============================================================
-            # STEP 6: Schedule Message 5 (24 minutes after Message 4)
+            # STEP 7: Schedule Message 5 (24 minutes after Message 4)
             # ============================================================
             job_queue.run_once(
                 send_delayed_message,
@@ -288,18 +304,23 @@ def main():
     """Start the bot."""
     logger.info("🚀 Starting KooraPredict Bot...")
 
-    # Check files
+    # Check and log all files
+    logger.info(f"Current directory: {os.getcwd()}")
+    files = os.listdir('.')
+    logger.info(f"Files in directory: {files}")
+
     if os.path.exists(WELCOME_IMAGE):
         logger.info(f"✅ Welcome image found: {WELCOME_IMAGE}")
     else:
         logger.warning(f"⚠️ '{WELCOME_IMAGE}' not found!")
+        logger.warning(f"Make sure the file is named exactly: {WELCOME_IMAGE}")
 
     found = [img for img in PREDICTION_IMAGES if os.path.exists(img)]
     missing = [img for img in PREDICTION_IMAGES if not os.path.exists(img)]
     if found:
-        logger.info(f"✅ Found {len(found)} prediction images")
+        logger.info(f"✅ Found {len(found)} prediction images: {found}")
     if missing:
-        logger.warning(f"⚠️ Missing images: {missing}")
+        logger.warning(f"⚠️ Missing prediction images: {missing}")
 
     # Create application
     application = Application.builder().token(BOT_TOKEN).build()
