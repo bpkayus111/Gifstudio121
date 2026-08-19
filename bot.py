@@ -36,7 +36,6 @@ PREDICTION_IMAGES = [
     "prediction_4.jpg",
     "prediction_5.jpg",
     "prediction_6.jpg",
-    "prediction_7.jpg"
 ]
 
 # --- Welcome Message ---
