@@ -22,20 +22,19 @@ logger = logging.getLogger(__name__)
 # --- Channel Link ---
 CHANNEL_LINK = "https://t.me/KooraPredict"
 
-# --- Image Files ---
-IMAGE_FILES = [
-    "photo_2026-08-19_12-49-41_-_Copy.jpg",
-    "photo_2026-08-19_12-49-50_-_Copy.jpg",
-    "photo_2026-08-19_12-49-53_-_Copy.jpg",
-    "photo_2026-08-19_12-49-56_-_Copy.jpg",
-    "photo_2026-08-19_12-49-58_-_Copy.jpg",
-    "photo_2026-08-19_12-50-00.jpg",
-    "photo_2026-08-19_12-50-03.jpg"
+# --- Image Files (Clean Names) ---
+WELCOME_IMAGE = "welcome.png"
+
+PREDICTION_IMAGES = [
+    "prediction_1.jpg",
+    "prediction_2.jpg",
+    "prediction_3.jpg",
+    "prediction_4.jpg",
+    "prediction_5.jpg",
+    "prediction_6.jpg",
 ]
 
 # --- Welcome Message ---
-WELCOME_IMAGE = "image.png"
-
 WELCOME_TEXT = """
 🌟 **مرحباً بك في بوت KooraPredict!** 🌟
 
@@ -142,7 +141,7 @@ async def send_sequence(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         # --- Send all images at once ---
         media_group = []
-        for i, image_file in enumerate(IMAGE_FILES):
+        for i, image_file in enumerate(PREDICTION_IMAGES):
             try:
                 if os.path.exists(image_file):
                     if i == 0:
@@ -254,7 +253,7 @@ def main():
 
     # Check all sequence images
     missing_images = []
-    for img in IMAGE_FILES:
+    for img in PREDICTION_IMAGES:
         if not os.path.exists(img):
             missing_images.append(img)
     if missing_images:
