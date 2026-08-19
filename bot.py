@@ -509,11 +509,13 @@ async def status_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     global bot_mode
 
     if bot_mode == "redirect":
-        mode_text = "🔁 **الوضع العادي** (REDIRECT) - رسائل تسويقية"
+        mode_text = "🔁 **الوضع العادي** (REDIRECT)"
         description = "يقوم البوت بإرسال رسائل الترحيب والصور التسويقية."
+        command_hint = "استخدم /reverse للتبديل إلى وضع تحويل الفيديو إلى GIF."
     else:
         mode_text = "🎬 **وضع تحويل الفيديو إلى GIF** (REVERSE)"
         description = "يقوم البوت بتحويل الفيديوهات إلى GIF."
+        command_hint = "استخدم /redirect للعودة إلى الوضع العادي."
 
     status = f"""
 📊 **حالة البوت**
@@ -522,10 +524,12 @@ async def status_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 📌 **الوصف:** {description}
 
+💡 **تلميح:** {command_hint}
+
 📋 **الأوامر المتاحة:**
 /start - بدء البوت حسب الوضع الحالي
 /reverse - تفعيل وضع تحويل الفيديو إلى GIF
-/redirect - تفعيل الوضع العادي (الرسائل التسويقية)
+/redirect - تفعيل الوضع العادي
 /status - عرض حالة البوت
 /help - عرض المساعدة
     """
